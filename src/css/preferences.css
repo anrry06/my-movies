@@ -1,0 +1,12 @@
+.pathList {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 20px; 
+}
+.pathList li {
+    line-height: 37px;
+}
+
+#pathResult {
+    margin-left: 10px;
+}

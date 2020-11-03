@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/light.css">
+    <!-- Movies -->
+    <link rel="stylesheet" href="css/preferences.css">
+
+    <title>Preferences</title>
+</head>
+
+<body data-theme="dark">
+    <div class="container" id="preferences">
+        <ul class="list-group list-group-flush pathList">
+        </ul>
+        <hr />
+        <form>
+            <p>Add a path to scan for movies</p>
+            <div class="form-group">
+                <button id="path" class="btn btn-secondary">Select folder</button><label for="path" id="pathResult">No folder selected</label>
+            </div>
+            <button id="addPath" class="btn btn-primary">Add folder</button>
+        </form>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- Preferences -->
+    <script src="js/preferences.js"></script>
+    <script>
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+#blocks .card { width: 175px; height: 440px; margin-bottom: 20px; }
+#blocks .card img { height: 261px; }
+#blocks .card-body { padding: .25rem; }
+#blocks .card-title { text-align: center; height: 72px; }
+#blocks .card-text { text-align: center; }
+#blocks .open { margin: auto; display: block; }
+#filters-col .card { width: 290px; margin-bottom: 20px; margin-left: 15px; }
+#filters-col button { margin: auto; display: block; }
+#filters-col li { padding: .25rem; }
+#search-col .card { width: 290px; margin-bottom: 20px; }
+#random-col .card { width: 290px; margin-bottom: 20px; }
+#random-col .random { width: 100%; }
+.hide, .hideSearch { display: none; }
+.block { width: auto; position: relative; float: left; display: block; }
