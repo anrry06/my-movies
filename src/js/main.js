@@ -10,19 +10,18 @@ console.log('main.js');
 
 let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
 
-movies.getData(preferences.paths, (error, data) => {
-    if (error) {
+movies.getData(preferences.paths)
+    .then(data => {
+        console.log(data);
+        Movies.init({
+            parent: document.body,
+            data: data,
+            openFolder: movies.start
+        });
+    })
+    .catch(error => {
         throw error;
-    }
-
-    console.log('data length', data.length);
-    console.log(data);
-    Movies.init({
-        parent: document.body,
-        data: data,
-        openFolder: movies.start
     });
-});
 
 const themeConfig = new ThemeConfig();
 themeConfig.initTheme(preferences.theme);
