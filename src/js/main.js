@@ -16,7 +16,8 @@ movies.getData(preferences.paths)
         Movies.init({
             parent: document.body,
             data: data,
-            openFolder: movies.start
+            buttonClick: movies.start,
+            type: 'movie'
         });
     })
     .catch(error => {
@@ -29,4 +30,28 @@ themeConfig.initTheme(preferences.theme);
 ipcRenderer.on('set-theme', (event, data) => {
     console.log('set-theme', data);
     themeConfig.displayTheme(data);
+});
+
+ipcRenderer.on('display-archives', (event, data) => {
+    console.log('display-archives', data);
+    document.querySelector('h1').innerHTML = 'Archives';
+    document.getElementById('movies').remove();
+    Movies.init({
+        parent: document.body,
+        data: data,
+        buttonClick: movies.searchOnRarbg,
+        type: 'archive'
+    });
+});
+
+ipcRenderer.on('display-movies', (event, data) => {
+    console.log('display-movies', data);
+    document.querySelector('h1').innerHTML = 'Movies';
+    document.getElementById('movies').remove();
+    Movies.init({
+        parent: document.body,
+        data: data,
+        buttonClick: movies.start,
+        type: 'movie'
+    });
 });

@@ -4,7 +4,8 @@ const Movies = {
     options: {
         parent: null,
         count: 20,
-        openFolder: null
+        buttonClick: null,
+        type: 'movie'
     },
     blocs: [],
     data: [],
@@ -34,7 +35,9 @@ const Movies = {
                 let rp = new Blocks({
                     id: i,
                     parent: document.querySelector('#block-col' + i),
-                    data: Movies.data[i]
+                    data: Movies.data[i],
+                    type: Movies.options.type,
+                    buttonClick: Movies.options.buttonClick
                 });
                 Movies.blocs.push(rp);
             }
@@ -87,7 +90,9 @@ class Blocks {
         let defaults = {
             parent: null,
             id: null,
-            data: {}
+            data: {},
+            type: 'movie',
+            buttonClick: null
         };
         this.options = Object.assign(defaults, options);
 
@@ -109,21 +114,17 @@ class Blocks {
 
     onOpenClick = (e) => {
         e.preventDefault();
-        let path = e.target.getAttribute('data-path');
-        console.log(path);
-        if(path !== ''){
-            this.openFolder(path);
+        if(this.options.type === 'movie'){
+            let path = this.options.data.path;
+            console.log(path);
+            if(path !== ''){
+                this.options.buttonClick(path);
+            }
+        }
+        else {
+            this.options.buttonClick(this.options.data.name);
         }
     };
-
-    openFolder(path) {
-        Movies.options.openFolder(path);
-        // console.log('http://localhost:4444/open/' + encodeURIComponent(path))
-        // fetch('http://localhost:4444/open/' + encodeURIComponent(path))
-        //     .catch(function (error) {
-        //         throw error;
-        //     });
-    }
 
     debug(...args) {
         console.log('ID: ' + this.options.id, ...args);
@@ -131,13 +132,14 @@ class Blocks {
 
     getHtml() {
         let imagePath = this.options.data.image.path === undefined ? 'images/no-cover.png' : this.options.data.image.path;
+        let buttonLabel = this.options.type === 'movie' ? 'Open' : 'Search on Rarbgproxy.org';
         return `
             <div class="card" id="block-${this.options.id}" data-name="${this.options.data.name}">
                 <img src="${imagePath}" loading="lazy" class="card-img-top" alt="...">
                 <div class="card-body">
                     <h5 class="card-title">${this.options.data.name}</h5>
                     <p class="card-text">${this.options.data.year}</p>
-                    <button data-path="${this.options.data.path}" class="btn btn-primary open">Open</button>
+                    <button data-path="${this.options.data.path}" class="btn btn-primary open">${buttonLabel}</button>
                 </div>
             </div>
         `;

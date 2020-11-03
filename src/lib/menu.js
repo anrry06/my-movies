@@ -67,6 +67,28 @@ let displayPreferences = () => {
     });
 }
 
+let archivesShown = false;
+
+let displayArchives = (mainWindow) => {
+    let _menuConf = menuConf(mainWindow);
+    let label = _menuConf[0].submenu[2].label;
+
+    if(archivesShown === false){
+        let archives = JSON.parse(fs.readFileSync(config.oldMoviesPath))
+        mainWindow.webContents.send('display-archives', archives);
+        label = 'Display Movies';
+        archivesShown = true;
+    } else {
+        let movies = JSON.parse(fs.readFileSync(config.moviesPath))
+        mainWindow.webContents.send('display-movies', movies);
+        label = 'Display Archives';
+        archivesShown = false;
+    }
+
+    _menuConf[0].submenu[2].label = label;
+    Menu.setApplicationMenu(Menu.buildFromTemplate(_menuConf));
+}
+
 let switchDarkMode = (mainWindow) => {
     preferences.theme = preferences.theme === 'light' ? 'dark' : 'light';
     mainWindow.webContents.send('set-theme', preferences.theme);
@@ -91,6 +113,10 @@ let menuConf = (window) => [
                 label: preferences.theme === 'light' ? 'Switch to Dark mode' : 'Switch to Light mode',
                 accelerator: 'ctrl+d', // shortcut
                 click: () => { switchDarkMode(window) }
+            },
+            {
+                label: 'Display Archives',
+                click: () => { displayArchives(window) }
             },
         ],
     },
