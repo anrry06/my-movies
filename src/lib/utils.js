@@ -120,6 +120,8 @@ let utils = {
                 i++;
             }
 
+            movies = utils.sortMovies(movies);
+            
             debug(`Saving data`);
             fs.writeFileSync(config.moviesPath, JSON.stringify(movies));
             
