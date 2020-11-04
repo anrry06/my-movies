@@ -10,20 +10,6 @@ console.log('main.js');
 
 let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
 
-movies.getData(preferences.paths)
-    .then(data => {
-        console.log(data);
-        Movies.init({
-            parent: document.body,
-            data: data,
-            buttonClick: movies.start,
-            type: 'movie'
-        });
-    })
-    .catch(error => {
-        throw error;
-    });
-
 const themeConfig = new ThemeConfig();
 themeConfig.initTheme(preferences.theme);
 
@@ -47,7 +33,9 @@ ipcRenderer.on('display-archives', (event, data) => {
 ipcRenderer.on('display-movies', (event, data) => {
     console.log('display-movies', data);
     document.querySelector('h1').innerHTML = 'Movies';
-    document.getElementById('movies').remove();
+    if (document.getElementById('movies')) {
+        document.getElementById('movies').remove();
+    }
     Movies.init({
         parent: document.body,
         data: data,

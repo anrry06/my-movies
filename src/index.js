@@ -12,6 +12,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 const menu = require('./lib/menu');
+const movies = require('./lib/movies');
 
 const createWindow = () => {
 
@@ -46,14 +47,16 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
     mainWindow.webContents.on('did-finish-load', () => {
-        // movies.getData((error, data) => {
-        //     if (error) {
-        //         throw error;
-        //     }
-
-        //     console.log('data length', data.length);
-        //     mainWindow.webContents.send('movies', data);
-        // });
+        console.log('did-finish-load');
+        movies.getData(preferences.paths)
+            .then(data => {
+                console.log(data);
+                console.log('send display-movies');
+                mainWindow.webContents.send('display-movies', data);
+            })
+            .catch(error => {
+                throw error;
+            });
     });
 };
 

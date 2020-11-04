@@ -11,55 +11,62 @@ const Movies = {
     data: [],
     filtersBlock: null,
     searchBlock: null,
+    randomBlock: null,
+    sortBlock: null,
 
     init: function (options) {
         options = options || {};
 
         Movies.options = Object.assign(Movies.options, options);
-        // Movies.loadData(function (data) {
-            Movies.data = options.data;
-            Movies.options.parent.innerHTML += Movies.getHtml();
-            Movies.filtersBlock = new Filters({
-                parent: document.querySelector('#filters-col')
-            });
+        Movies.data = options.data;
+        Movies.options.parent.innerHTML += Movies.getHtml();
+        Movies.filtersBlock = new Filters({
+            parent: document.querySelector('#filters-col')
+        });
 
-            Movies.searchBlock = new Search({
-                parent: document.querySelector('#search-col')
-            });
+        Movies.searchBlock = new Search({
+            parent: document.querySelector('#search-col')
+        });
 
-            Movies.randomBlock = new Random({
-                parent: document.querySelector('#random-col')
-            });
+        Movies.randomBlock = new Random({
+            parent: document.querySelector('#random-col')
+        });
 
-            for (let i = 0; i < Movies.data.length; i++) {
-                let rp = new Blocks({
-                    id: i,
-                    parent: document.querySelector('#block-col' + i),
-                    data: Movies.data[i],
-                    type: Movies.options.type,
-                    buttonClick: Movies.options.buttonClick
-                });
-                Movies.blocs.push(rp);
-            }
-        // });
+        Movies.sortBlock = new Sort({
+            parent: document.querySelector('#sort-col')
+        });
+
+        for (let i = 0; i < Movies.data.length; i++) {
+            let rp = new Blocks({
+                id: i,
+                parent: document.querySelector('#block-col' + i),
+                data: Movies.data[i],
+                type: Movies.options.type,
+                buttonClick: Movies.options.buttonClick
+            });
+            Movies.blocs.push(rp);
+        }
     },
 
-    loadData: function (next) {
-        fetch('http://localhost:4444/data')
-            .then(function (response) {
-                response
-                    .json()
-                    .then(function (json) {
-                        console.log(json);
-                        next(json);
-                    })
-                    .catch(function (error) {
-                        throw error;
-                    });
-            })
-            .catch(function (error) {
-                throw error;
+    reloadBlocks: function (data) {
+        Movies.data = data;
+
+        let blocs = '';
+        for (let i = 0; i < Movies.data.length; i++) {
+            blocs += `<div class="col-md block" id="block-col${i}"></div>`;
+        }
+        document.querySelector('#blocks').innerHTML = blocs;
+
+        for (let i = 0; i < Movies.data.length; i++) {
+            let rp = new Blocks({
+                id: i,
+                parent: document.querySelector('#block-col' + i),
+                data: Movies.data[i],
+                type: Movies.options.type,
+                buttonClick: Movies.options.buttonClick
             });
+            Movies.blocs.push(rp);
+        }
     },
 
     getHtml: function () {
@@ -74,6 +81,7 @@ const Movies = {
                     <div class="col-md" id="filters-col"></div>
                     <div class="col-md" id="search-col"></div>
                     <div class="col-md" id="random-col"></div>
+                    <div class="col-md" id="sort-col"></div>
                 </div>
                 <div id="blocks">
                     ${blocs}
@@ -114,10 +122,10 @@ class Blocks {
 
     onOpenClick = (e) => {
         e.preventDefault();
-        if(this.options.type === 'movie'){
+        if (this.options.type === 'movie') {
             let path = this.options.data.path;
             console.log(path);
-            if(path !== ''){
+            if (path !== '') {
                 this.options.buttonClick(path);
             }
         }
@@ -134,11 +142,16 @@ class Blocks {
         let imagePath = this.options.data.image.path === undefined ? 'images/no-cover.png' : this.options.data.image.path;
         let buttonLabel = this.options.type === 'movie' ? 'Open' : 'Search on Rarbgproxy.org';
         return `
-            <div class="card" id="block-${this.options.id}" data-name="${this.options.data.name}">
+            <div class="card" id="block-${this.options.id}" data-name="${this.options.data.name}" data-duration="${this.options.data.infos.duration}">
                 <img src="${imagePath}" loading="lazy" class="card-img-top" alt="...">
                 <div class="card-body">
                     <h5 class="card-title">${this.options.data.name}</h5>
-                    <p class="card-text">${this.options.data.year}</p>
+                    <p class="card-text year">
+                        ${this.options.data.year}
+                    </p>
+                    <p class="card-text duration">
+                        ${this.options.data.infos.formatedDuration}
+                    </p>
                     <button data-path="${this.options.data.path}" class="btn btn-primary open">${buttonLabel}</button>
                 </div>
             </div>
@@ -182,12 +195,12 @@ class Filters {
         });
         this.numbers.classList.toggle('btn-danger');
         let active = this.numbers.classList.contains('btn-danger');
-        if(active){
+        if (active) {
             document.querySelectorAll('#blocks .card.hide').forEach(c => c.classList.remove('hide'));
             let cards = document.querySelectorAll('#blocks .card');
-            cards.forEach(function(card){
+            cards.forEach(function (card) {
                 let name = card.getAttribute('data-name');
-                if(!name.match(/^([0-9])/)){
+                if (!name.match(/^([0-9])/)) {
                     card.classList.add('hide');
                 }
             })
@@ -200,21 +213,21 @@ class Filters {
     onLetterClick = (e) => {
         e.preventDefault();
         this.letters.forEach(l => {
-            if(l !== e.target){
+            if (l !== e.target) {
                 l.classList.remove('btn-danger');
             }
         });
         this.numbers.classList.remove('btn-danger');
         e.target.classList.toggle('btn-danger');
         let active = e.target.classList.contains('btn-danger');
-        if(active){
+        if (active) {
             document.querySelectorAll('#blocks .card.hide').forEach(c => c.classList.remove('hide'));
             let cards = document.querySelectorAll('#blocks .card');
             let letter = e.target.innerHTML;
-            cards.forEach(function(card){
+            cards.forEach(function (card) {
                 let name = card.getAttribute('data-name');
                 let reg = new RegExp(`^${letter}`, 'i')
-                if(!reg.test(name)){
+                if (!reg.test(name)) {
                     card.classList.add('hide');
                 }
             })
@@ -225,13 +238,13 @@ class Filters {
     };
 
     getHtml() {
-        let a='abcdefghijklmnopqrstuvwxyz'.split('');
+        let a = 'abcdefghijklmnopqrstuvwxyz'.split('');
         let letters = `<div class="btn-group" role="group" aria-label="Letters">`;
-        for(let i = 0, l = a.length; i < l; i++){
-            if(i%7 === 0){
+        for (let i = 0, l = a.length; i < l; i++) {
+            if (i % 7 === 0) {
                 letters += `</div><div class="btn-group" role="group" aria-label="Letters">`;
             }
-            let buttonClass = i%2 === 0 ? 'primary' : 'secondary';
+            let buttonClass = i % 2 === 0 ? 'primary' : 'secondary';
             letters += `<button class="btn btn-${buttonClass} letter">${a[i]}</button>`;
         }
         letters += `</div>`;
@@ -279,10 +292,10 @@ class Search {
         document.querySelectorAll('#blocks .card.hideSearch').forEach(c => c.classList.remove('hideSearch'));
         let cards = document.querySelectorAll('#blocks .card');
         let search = e.target.value;
-        cards.forEach(function(card){
+        cards.forEach(function (card) {
             let name = card.getAttribute('data-name');
             let reg = new RegExp(search, 'i')
-            if(!reg.test(name)){
+            if (!reg.test(name)) {
                 card.classList.add('hideSearch');
             }
         })
@@ -332,7 +345,7 @@ class Random {
         cards.forEach(c => c.classList.remove('hideSearch', 'hide'));
         const randomElement = cards[Math.floor(Math.random() * cards.length)];
         cards.forEach(c => {
-            if(c !== randomElement){
+            if (c !== randomElement) {
                 c.classList.add('hide')
             }
         });
@@ -343,6 +356,79 @@ class Random {
             <div class="card" id="random">
                 <div class="card-body">
                     <button class="btn btn-primary random">Random</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+class Sort {
+    constructor(options) {
+        options = options || {};
+
+        let defaults = {
+            parent: null,
+            id: null,
+            data: {},
+        };
+        this.options = Object.assign(defaults, options);
+
+        this.options.parent.innerHTML += this.getHtml();
+
+        this.el = document.querySelector(`#sort`);
+
+        this.loadElements();
+        this.initEvents();
+    }
+
+    loadElements() {
+        this.name = this.el.querySelector('.name');
+        this.duration = this.el.querySelector('.duration');
+    }
+
+    initEvents() {
+        this.name.onclick = this.onClick;
+        this.duration.onclick = this.onClick;
+    }
+
+    onClick = (e) => {
+        e.preventDefault();
+
+        let way = this.el.getAttribute('data-way');
+        way = way === 'asc' ? 'desc' : 'asc';
+        this.el.setAttribute('data-way', way);
+
+        this.el.querySelectorAll('.name, .duration').forEach(el => {
+            el.classList.remove('btn-' + (way === 'asc' ? 'info' : 'success'))
+            el.classList.add('btn-secondary')
+        })
+
+        let wayElClassList = this.el.querySelector('.way').classList;
+        wayElClassList.remove('btn-secondary')
+        wayElClassList.remove('btn-' + (way === 'asc' ? 'info' : 'success'))
+        wayElClassList.add('btn-' + (way === 'desc' ? 'info' : 'success'));
+
+        e.target.classList.remove('btn-' + (way === 'asc' ? 'info' : 'success'))
+        e.target.classList.add('btn-' + (way === 'desc' ? 'info' : 'success'));
+
+        let wayIconElClassList = this.el.querySelector('.way i').classList;
+        wayIconElClassList.remove('fa-arrow-' + (way === 'desc' ? 'up' : 'down'))
+        wayIconElClassList.add('fa-arrow-' + (way === 'asc' ? 'up' : 'down'))
+
+        let key = e.target.getAttribute('data-key');
+        let data = utils.sortMovies(Movies.data, key, way);
+        Movies.reloadBlocks(data);
+    }
+
+    getHtml() {
+        return `
+            <div class="card" id="sort" data-way="asc">
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-secondary name" data-key="name">Name</button>
+                        <button type="button" class="btn btn-secondary duration" data-key="infos.duration">Duration</button>
+                    </div>
+                    <button type="button" class="btn btn-secondary way"><i class="fas fa-arrow-up"></i></button>
                 </div>
             </div>
         `;
@@ -361,4 +447,33 @@ const utils = {
         el.classList.remove(...classes);
         el.classList.add(cls);
     },
+
+    sortMovies: function (movies, key, way) {
+        way = way || 'asc';
+        function compare(a, b) {
+            // Use toUpperCase() to ignore character casing
+            let akey = utils.resolvePath(key, a);
+            let bkey = utils.resolvePath(key, b);
+            akey = akey.toUpperCase ? akey.toUpperCase() : akey;
+            bkey = bkey.toUpperCase ? bkey.toUpperCase() : bkey;
+
+            let comparison = 0;
+            if (akey > bkey) {
+                comparison = 1;
+            } else if (akey < bkey) {
+                comparison = -1;
+            }
+            return comparison;
+        }
+        movies.sort(compare);
+        if (way === 'desc') {
+            movies = movies.reverse()
+        }
+        return movies;
+    },
+
+    resolvePath: function reslve(path, obj, separator = '.') {
+        var properties = Array.isArray(path) ? path : path.split(separator)
+        return properties.reduce((prev, curr) => prev && prev[curr], obj)
+    }
 };
