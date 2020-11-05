@@ -1,10 +1,11 @@
 let utils = require('./utils');
-let path = require('path');
 const { exec } = require('child_process');
 
 let movies = {
+    mainWindow: null,
     getData: async function(paths){
-        try {     
+        try {
+            utils.mainWindow = this.mainWindow;
             let movies = await utils.getFilesList(paths);
             movies = await utils.processPossibleMovies(movies);
             return movies;

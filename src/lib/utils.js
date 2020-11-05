@@ -14,10 +14,21 @@ const ffprobeStatic = require('ffprobe-static');
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../config/' + env + '.js');
 
-let debug = console.log;
-let debugLow = console.log;
+let debug = (...args) =>{ 
+    console.log(...args);
+    if(utils.mainWindow){
+        utils.mainWindow.webContents.send('debug', args);
+    }
+};
+let debugLow = (...args) =>{ 
+    console.log(...args);
+    if(utils.mainWindow){
+        utils.mainWindow.webContents.send('debug-low', args);
+    }
+};
 
 let utils = {
+    mainWindow: null,
     getFilesList: async function (filesPaths) {
         try {
             let promisesFilesPaths = filesPaths.map(async fp => {

@@ -2,6 +2,7 @@ const { ipcRenderer, remote } = require('electron');
 const fs = require('fs');
 
 const movies = require('./lib/movies');
+const loader = require('./js/loader');
 
 const env = process.env.NODE_ENV || 'dev';
 const config = require('./config/' + env + '.js');
@@ -32,6 +33,7 @@ ipcRenderer.on('display-archives', (event, data) => {
 
 ipcRenderer.on('display-movies', (event, data) => {
     console.log('display-movies', data);
+    loader.hide(data);
     document.querySelector('h1').innerHTML = 'Movies';
     if (document.getElementById('movies')) {
         document.getElementById('movies').remove();
@@ -42,4 +44,9 @@ ipcRenderer.on('display-movies', (event, data) => {
         buttonClick: movies.start,
         type: 'movie'
     });
+});
+
+ipcRenderer.on('debug', (event, data) => {
+    console.log('debug', data);
+    loader.display(data);
 });

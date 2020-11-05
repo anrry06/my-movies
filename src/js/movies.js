@@ -382,13 +382,13 @@ class Sort {
     }
 
     loadElements() {
-        this.name = this.el.querySelector('.name');
-        this.duration = this.el.querySelector('.duration');
+        this.buttons = this.el.querySelectorAll('.sort-button');
     }
 
     initEvents() {
-        this.name.onclick = this.onClick;
-        this.duration.onclick = this.onClick;
+        this.buttons.forEach(b => {
+            b.onclick = this.onClick;
+        });
     }
 
     onClick = (e) => {
@@ -425,10 +425,11 @@ class Sort {
             <div class="card" id="sort" data-way="asc">
                 <div class="card-body">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-secondary name" data-key="name">Name</button>
-                        <button type="button" class="btn btn-secondary duration" data-key="infos.duration">Duration</button>
+                        <button type="button" class="btn btn-secondary sort-button" data-key="name">Name</button>
+                        <button type="button" class="btn btn-secondary sort-button" data-key="infos.duration">Duration</button>
+                        <button type="button" class="btn btn-secondary sort-button" data-key="creationDate">Created&nbsp;At</button>
+                        <button type="button" class="btn btn-secondary way"><i class="fas fa-arrow-up"></i></button>
                     </div>
-                    <button type="button" class="btn btn-secondary way"><i class="fas fa-arrow-up"></i></button>
                 </div>
             </div>
         `;
@@ -456,6 +457,11 @@ const utils = {
             let bkey = utils.resolvePath(key, b);
             akey = akey.toUpperCase ? akey.toUpperCase() : akey;
             bkey = bkey.toUpperCase ? bkey.toUpperCase() : bkey;
+
+            if(key === 'creationDate'){
+                akey = new Date(akey).getTime();
+                bkey = new Date(bkey).getTime();
+            }
 
             let comparison = 0;
             if (akey > bkey) {

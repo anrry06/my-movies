@@ -48,6 +48,7 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
     mainWindow.webContents.on('did-finish-load', () => {
         console.log('did-finish-load');
+        movies.mainWindow = mainWindow;
         movies.getData(preferences.paths)
             .then(data => {
                 console.log(data);
