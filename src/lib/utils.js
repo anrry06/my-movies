@@ -42,6 +42,8 @@ let utils = {
 
     getFilesList: async function (filesPaths) {
         try {
+            debug(`Scanning`, filesPaths);
+
             let promisesFilesPaths = filesPaths.map(async fp => {
                 let dirs = await promiseGlob(fp + '/*');
                 dirs = dirs

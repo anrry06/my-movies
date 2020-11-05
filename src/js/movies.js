@@ -33,7 +33,8 @@ const Movies = {
         });
 
         Movies.sortBlock = new Sort({
-            parent: document.querySelector('#sort-col')
+            parent: document.querySelector('#sort-col'),
+            type: Movies.options.type
         });
 
         for (let i = 0; i < Movies.data.length; i++) {
@@ -366,6 +367,7 @@ class Sort {
             parent: null,
             id: null,
             data: {},
+            type: 'movie'
         };
         this.options = Object.assign(defaults, options);
 
@@ -394,7 +396,7 @@ class Sort {
         way = way === 'asc' ? 'desc' : 'asc';
         this.el.setAttribute('data-way', way);
 
-        this.el.querySelectorAll('.name, .duration').forEach(el => {
+        this.el.querySelectorAll('.sort-button').forEach(el => {
             el.classList.remove('btn-' + (way === 'asc' ? 'info' : 'success'))
             el.classList.add('btn-secondary')
         })
@@ -417,6 +419,7 @@ class Sort {
     }
 
     getHtml() {
+        let archivedAtButton = this.options.type === 'movie' ? '' : '<button type="button" class="btn btn-secondary sort-button" data-key="archivedDate">Archived&nbsp;At</button>';
         return `
             <div class="card" id="sort" data-way="asc">
                 <div class="card-body">
@@ -424,6 +427,7 @@ class Sort {
                         <button type="button" class="btn btn-secondary sort-button" data-key="name">Name</button>
                         <button type="button" class="btn btn-secondary sort-button" data-key="infos.duration">Duration</button>
                         <button type="button" class="btn btn-secondary sort-button" data-key="creationDate">Created&nbsp;At</button>
+                        ${archivedAtButton}
                         <button type="button" class="btn btn-secondary way"><i class="fas fa-arrow-up"></i></button>
                     </div>
                 </div>
@@ -454,7 +458,7 @@ const movieUtils = {
             akey = akey.toUpperCase ? akey.toUpperCase() : akey;
             bkey = bkey.toUpperCase ? bkey.toUpperCase() : bkey;
 
-            if(key === 'creationDate'){
+            if(['creationDate', 'archivedDate'].indexOf(key) !== -1){
                 akey = new Date(akey).getTime();
                 bkey = new Date(bkey).getTime();
             }

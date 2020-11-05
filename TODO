@@ -3,7 +3,7 @@
 +- get movie duration
 +- sort by duration
 +- sort by creation date
-- sort archives by archived date
++- sort archives by archived date
 - handle subtitles ( exist, search, rename )
 - store the image in movie folder as an option ?
 +- handle page reload on action
