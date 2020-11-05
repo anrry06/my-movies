@@ -10,6 +10,7 @@ const nameToImdb = require('name-to-imdb');
 const uniqueRandomArray = require('unique-random-array');
 const ffprobe = require('ffprobe');
 const ffprobeStatic = require('ffprobe-static');
+const { exec } = require('child_process');
 
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../config/' + env + '.js');
@@ -29,6 +30,16 @@ let debugLow = (...args) =>{
 
 let utils = {
     mainWindow: null,
+    getData: async function(paths){
+        try {
+            let movies = await this.getFilesList(paths);
+            movies = await this.processPossibleMovies(movies);
+            return movies;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     getFilesList: async function (filesPaths) {
         try {
             let promisesFilesPaths = filesPaths.map(async fp => {
@@ -94,6 +105,15 @@ let utils = {
                 return m;
             });
             debug(`Archived ${_oldMoviesList.length} old movies`);
+
+            oldMoviesList = oldMoviesList.filter(om => {
+                if(movies.find(m => m.name === om.name)){
+                    debug(`Removed ${om.name} from archived movies`);
+                    return false;
+                }
+
+                return true;
+            });
 
             oldMoviesList = oldMoviesList.concat(_oldMoviesList);
             fs.writeFileSync(config.oldMoviesPath, JSON.stringify(oldMoviesList));
@@ -284,7 +304,36 @@ let utils = {
         let d = new Date(duration * 1000);
         d.setTime(d.getTime() + d.getTimezoneOffset() * 60 * 1000);
         return d.toTimeString().split(/\s/)[0]
+    },
+
+    start: function(path){
+        console.log('start', path);
+        exec(`start "" "${path}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            if(stdout !== '')
+                console.log(`stdout: ${stdout}`);
+            if(stderr !== '')
+                console.error(`stderr: ${stderr}`);
+        });
+    },
+
+    searchOnRarbg: function(name){
+        console.log('searchOnRarbg', name);
+        exec(`start chrome.exe "https://rarbgproxy.org/torrents.php?search=${name}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            if(stdout !== '')
+                console.log(`stdout: ${stdout}`);
+            if(stderr !== '')
+                console.error(`stderr: ${stderr}`);
+        });
     }
+
 };
 
 module.exports = utils;

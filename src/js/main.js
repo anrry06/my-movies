@@ -1,7 +1,7 @@
-const { ipcRenderer, remote } = require('electron');
+const { ipcRenderer } = require('electron');
 const fs = require('fs');
 
-const movies = require('./lib/movies');
+const utils = require('./lib/utils');
 const loader = require('./js/loader');
 
 const env = process.env.NODE_ENV || 'dev';
@@ -26,7 +26,7 @@ ipcRenderer.on('display-archives', (event, data) => {
     Movies.init({
         parent: document.body,
         data: data,
-        buttonClick: movies.searchOnRarbg,
+        buttonClick: utils.searchOnRarbg,
         type: 'archive'
     });
 });
@@ -41,7 +41,7 @@ ipcRenderer.on('display-movies', (event, data) => {
     Movies.init({
         parent: document.body,
         data: data,
-        buttonClick: movies.start,
+        buttonClick: utils.start,
         type: 'movie'
     });
 });

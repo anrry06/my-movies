@@ -7,6 +7,8 @@ const config = require('../config/' + env + '.js');
 
 let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
 
+const utils = require('../lib/utils');
+
 let savePreferences = (prefs) => {
     console.log('Saving preferences', prefs);
     if (prefs) {
@@ -14,14 +16,14 @@ let savePreferences = (prefs) => {
     }
 }
 
-let displayPreferences = () => {
+let displayPreferences = (mainWindow) => {
     const htmlPath = path.join(
         __dirname,
         '../preferences.html'
     );
 
     let html = fs.readFileSync(htmlPath, 'utf8');
-    html = html.replace(/dark|light/, preferences.theme || 'dark');
+    html = html.replace(/\"(dark|light)\"/, `"${preferences.theme}"` || '"dark"');
     fs.writeFileSync(htmlPath, html);
 
     let prefWindow = new BrowserWindow({
@@ -40,31 +42,59 @@ let displayPreferences = () => {
     prefWindow.loadURL(htmlPath);
     prefWindow.show();
 
-    // let devtools = new BrowserWindow();
-    // prefWindow.webContents.setDevToolsWebContents(
-    //     devtools.webContents
-    // );
-    // prefWindow.webContents.openDevTools({ mode: 'detach' });
+    let devtools = new BrowserWindow();
+    prefWindow.webContents.setDevToolsWebContents(
+        devtools.webContents
+    );
+    prefWindow.webContents.openDevTools({ mode: 'detach' });
 
     prefWindow.on('close', function () {
         prefWindow = null;
     });
 
-    ipcMain.on('select-dirs', async (event, arg) => {
-        console.log('show dialog')
-        const result = await dialog.showOpenDialog(prefWindow, {
-            properties: ['openDirectory']
-        })
-        console.log('directories selected', result.filePaths)
-        prefWindow.webContents.send('dirs-results', result.filePaths);
-    })
+    let directoryDialog = null;
 
-    ipcMain.on('save-preferences', (event, prefs) => {
+    let _selectDirs = async (event, arg) => {
+        console.log('Show directory dialog')
+        if(!directoryDialog){
+            directoryDialog = await dialog.showOpenDialog(prefWindow, {
+                properties: ['openDirectory']
+            })
+            console.log('Directories selected', directoryDialog.filePaths)
+            prefWindow.webContents.send('dirs-results', directoryDialog.filePaths);
+        }
+    }
+    ipcMain.removeListener('select-dirs', _selectDirs)
+    ipcMain.on('select-dirs', _selectDirs)
+
+    let _savePreferences = (event, prefs) => {
         savePreferences(prefs)
-        if (preferences) {
+        if (prefs) {
             prefWindow.webContents.send('preferences-saved', prefs);
         }
-    });
+    }
+    ipcMain.removeListener('save-preferences', _savePreferences);
+    ipcMain.on('save-preferences', _savePreferences);
+
+    let _savePreferencesPath = (event, prefs) => {
+        savePreferences(prefs)
+        if (prefs) {
+            prefWindow.webContents.send('preferences-saved', prefs);
+        }
+
+        utils.mainWindow = mainWindow;
+        utils.getData(prefs.paths)
+            .then(data => {
+                // console.log(data);
+                console.log('Send display-movies');
+                mainWindow.webContents.send('display-movies', data);
+            })
+            .catch(error => {
+                throw error;
+            });
+    }
+    ipcMain.removeListener('save-preferences-path', _savePreferencesPath);
+    ipcMain.on('save-preferences-path', _savePreferencesPath);
 }
 
 let archivesShown = false;
@@ -107,7 +137,7 @@ let menuConf = (window) => [
             {
                 label: 'Preferences',
                 accelerator: 'ctrl+,', // shortcut
-                click: displayPreferences
+                click: () => { displayPreferences(window) }
             },
             {
                 label: preferences.theme === 'light' ? 'Switch to Dark mode' : 'Switch to Light mode',

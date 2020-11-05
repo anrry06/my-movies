@@ -12,7 +12,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 const menu = require('./lib/menu');
-const movies = require('./lib/movies');
+const utils = require('./lib/utils');
 
 const createWindow = () => {
 
@@ -47,12 +47,12 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
     mainWindow.webContents.on('did-finish-load', () => {
-        console.log('did-finish-load');
-        movies.mainWindow = mainWindow;
-        movies.getData(preferences.paths)
+        console.log('On did-finish-load');
+        utils.mainWindow = mainWindow;
+        utils.getData(preferences.paths)
             .then(data => {
-                console.log(data);
-                console.log('send display-movies');
+                // console.log(data);
+                console.log('Send display-movies');
                 mainWindow.webContents.send('display-movies', data);
             })
             .catch(error => {

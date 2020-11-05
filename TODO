@@ -6,8 +6,8 @@
 - sort archives by archived date
 - handle subtitles ( exist, search, rename )
 - store the image in movie folder as an option ?
-- handle page reload on action
-- handle data reload on action
++- handle page reload on action
++- handle data reload on action
 - try with more movies
 - series ?
 

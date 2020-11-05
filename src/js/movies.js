@@ -145,13 +145,9 @@ class Blocks {
             <div class="card" id="block-${this.options.id}" data-name="${this.options.data.name}" data-duration="${this.options.data.infos.duration}">
                 <img src="${imagePath}" loading="lazy" class="card-img-top" alt="...">
                 <div class="card-body">
+                    <span class="badge badge-pill badge-info">${this.options.data.year}</span>
+                    <span class="badge badge-pill badge-info">${this.options.data.infos.formatedDuration}</span>
                     <h5 class="card-title">${this.options.data.name}</h5>
-                    <p class="card-text year">
-                        ${this.options.data.year}
-                    </p>
-                    <p class="card-text duration">
-                        ${this.options.data.infos.formatedDuration}
-                    </p>
                     <button data-path="${this.options.data.path}" class="btn btn-primary open">${buttonLabel}</button>
                 </div>
             </div>
@@ -416,7 +412,7 @@ class Sort {
         wayIconElClassList.add('fa-arrow-' + (way === 'asc' ? 'up' : 'down'))
 
         let key = e.target.getAttribute('data-key');
-        let data = utils.sortMovies(Movies.data, key, way);
+        let data = movieUtils.sortMovies(Movies.data, key, way);
         Movies.reloadBlocks(data);
     }
 
@@ -436,7 +432,7 @@ class Sort {
     }
 }
 
-const utils = {
+const movieUtils = {
     setButtonClass(el, cls) {
         let classes = [
             'btn-danger',
@@ -453,8 +449,8 @@ const utils = {
         way = way || 'asc';
         function compare(a, b) {
             // Use toUpperCase() to ignore character casing
-            let akey = utils.resolvePath(key, a);
-            let bkey = utils.resolvePath(key, b);
+            let akey = movieUtils.resolvePath(key, a);
+            let bkey = movieUtils.resolvePath(key, b);
             akey = akey.toUpperCase ? akey.toUpperCase() : akey;
             bkey = bkey.toUpperCase ? bkey.toUpperCase() : bkey;
 
