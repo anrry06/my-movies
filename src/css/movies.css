@@ -1,3 +1,6 @@
+#blocks .clear {
+    clear: left;
+}
 #blocks .card {
     width: 175px;
     /* height: 440px; */
@@ -21,6 +24,19 @@
     margin-bottom: 10px;
     display: block;
 }
+#blocks .edit {
+    position: absolute;
+    padding: 8px;
+    cursor: pointer;
+    margin: 5px;
+    right: 0;
+    display: none;
+}
+
+#blocks .card:hover .edit {
+    display: block;
+}
+
 #filters-col .card {
     width: 290px;
     margin-bottom: 20px;

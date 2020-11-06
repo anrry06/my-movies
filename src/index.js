@@ -47,6 +47,10 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
     mainWindow.webContents.on('did-finish-load', () => {
         console.log('On did-finish-load');
+        let moviesData = new Json(config.moviesPath).data;
+        console.log('Send preload display-movies');
+        mainWindow.webContents.send('display-movies', moviesData);
+
         preferences = new Json(config.preferencesPath).data;
         utils.mainWindow = mainWindow;
         utils.getData(preferences.paths)

@@ -7,7 +7,7 @@ const Movies = {
         buttonClick: null,
         type: 'movie'
     },
-    blocs: [],
+    blocks: [],
     data: [],
     filtersBlock: null,
     searchBlock: null,
@@ -43,9 +43,10 @@ const Movies = {
                 parent: document.querySelector('#block-col' + i),
                 data: Movies.data[i],
                 type: Movies.options.type,
-                buttonClick: Movies.options.buttonClick
+                buttonClick: Movies.options.buttonClick,
+                displayEditForm: Movies.displayEditForm, 
             });
-            Movies.blocs.push(rp);
+            Movies.blocks.push(rp);
         }
     },
 
@@ -68,6 +69,33 @@ const Movies = {
             });
             Movies.blocs.push(rp);
         }
+    },
+
+    hideBlocks: function(){
+        document.querySelector('#blocks').style.display = 'none';
+    },
+
+    hideFilters: function(){
+        document.querySelector('.filters-container').style.display = 'none';
+    },
+
+    displayEditForm: function(blockId){
+        console.log('displayEditForm', blockId);
+        Movies.hideBlocks();
+        Movies.hideFilters();
+
+        let block = Movies.blocks.find(b => b.options.id === parseInt(blockId, 10));
+        let ef = new EditForm({
+            parent: document.querySelector('#edit-form-container'),
+            block: block,
+            onClose: Movies.removeEditForm
+        });
+    },
+
+    removeEditForm: function(){
+        document.querySelector('#edit-form').remove();
+        document.querySelector('#blocks').style.display = '';
+        document.querySelector('.filters-container').style.display = '';
     },
 
     getHtml: function () {
@@ -101,7 +129,8 @@ class Blocks {
             id: null,
             data: {},
             type: 'movie',
-            buttonClick: null
+            buttonClick: null,
+            displayEditForm: null
         };
         this.options = Object.assign(defaults, options);
 
@@ -111,21 +140,24 @@ class Blocks {
 
         this.loadElements();
         this.initEvents();
+
+        return this;
     }
 
     loadElements() {
         this.open = this.el.querySelector('.open');
+        this.edit = this.el.querySelector('.edit');
     }
 
     initEvents() {
         this.open.onclick = this.onOpenClick;
+        this.edit.onclick = this.onEditClick;
     }
 
     onOpenClick = (e) => {
         e.preventDefault();
         if (this.options.type === 'movie') {
             let path = this.options.data.path;
-            console.log(path);
             if (path !== '') {
                 this.options.buttonClick(path);
             }
@@ -133,6 +165,12 @@ class Blocks {
         else {
             this.options.buttonClick(this.options.data.name);
         }
+    };
+
+    onEditClick = (e) => {
+        e.preventDefault();
+        this.debug('editClick');
+        this.options.displayEditForm(this.options.id);
     };
 
     debug(...args) {
@@ -151,6 +189,7 @@ class Blocks {
                     <h5 class="card-title">${this.options.data.name}</h5>
                     <button data-path="${this.options.data.path}" class="btn btn-primary open">${buttonLabel}</button>
                 </div>
+                <span class="badge badge-pill badge-info edit" data-id="${this.options.id}"><i class="fas fa-edit"></i></span>
             </div>
         `;
     }
@@ -432,6 +471,91 @@ class Sort {
                     </div>
                 </div>
             </div>
+        `;
+    }
+}
+
+class EditForm {
+    constructor(options) {
+        options = options || {};
+
+        let defaults = {
+            parent: null,
+            block: null,
+            onClose: null
+        };
+        this.options = Object.assign(defaults, options);
+
+        this.options.parent.innerHTML += this.getHtml();
+
+        this.el = document.querySelector(`#edit-form`);
+
+        this.loadElements();
+        this.initEvents();
+    }
+
+    loadElements() {
+        this.cancel = this.el.querySelector('.cancel');
+    }
+
+    initEvents() {
+        this.cancel.onclick = this.onCancelClick;
+    }
+
+    onCancelClick = (e) => {
+        e.preventDefault();
+        this.options.onClose();
+    }
+
+    getInput(o, key) {
+        let input = '';
+        key = key || '';
+        if(typeof o === 'object' && o === null){
+            input += `
+                <div class="form-group">
+                    <label for="${key}">${key}</label>
+                    <input type="text" class="form-control" id="${key}" value="" data-null="true">
+                </div>
+            `;
+        }
+        else if(typeof o === 'object' && o.length === undefined){
+            for(let k in o){
+                input += this.getInput(o[k], key === '' ? k : key + '.' + k);
+            }
+        }
+        else if(typeof o === 'object' && o.length !== undefined){
+            input += `
+                <div class="form-group">
+                    <label for="${key}">${key}</label>
+                    <input type="text" class="form-control" id="${key}" value="${o.join(', ')}">
+                </div>
+            `;
+        }
+        else {
+            input += `
+                <div class="form-group">
+                    <label for="${key}">${key}</label>
+                    <input type="text" class="form-control" id="${key}" value="${o}">
+                </div>
+            `;
+        }
+
+        return input;
+    }
+
+    getHtml() {
+        let inputs = '';
+        let data = this.options.block.options.data;
+        for(let key in data){
+            console.log(key);
+            inputs += this.getInput(data[key], key);
+        }
+        return `
+            <form id="edit-form" class="">
+                ${inputs}
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button class="btn btn-secondary cancel">Cancel</button>
+            </form>
         `;
     }
 }

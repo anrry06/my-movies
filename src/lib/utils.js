@@ -6,7 +6,6 @@ const path = require('path');
 const http = require('http');
 const https = require('https');
 const Stream = require('stream').Transform;
-const nameToImdb = require('name-to-imdb');
 const uniqueRandomArray = require('unique-random-array');
 const ffprobe = require('ffprobe');
 const ffprobeStatic = require('ffprobe-static');
@@ -16,6 +15,7 @@ const env = process.env.NODE_ENV || 'dev';
 const config = require('../config/' + env + '.js');
 
 const Json = require('../lib/json.js');
+const imdb = require('../lib/imdb.js');
 
 let debug = (...args) =>{ 
     console.log(...args);
@@ -145,16 +145,17 @@ let utils = {
                     movies[i].infos = scan;
                 }
 
-                if (!m.image || m.image.src === undefined) {
+                if (!m.image || !m.image.src) {
                     debugLow(`  - Searching for images`);
                     let image = await utils.getImage(movies[i].name, movies[i].year)
 
                     if (image.src != null)
-                        debugLow(`  - Image found`);
+                        debugLow(`  - Image found`, image);
                     else
                         debugLow(`  - Image not found`);
 
                     movies[i].image = image;
+                    m = movies[i];
                 }
 
                 if (m.image && m.image.src && m.image.id && !m.image.path) {
@@ -162,6 +163,13 @@ let utils = {
                     await utils.downloadImage(m.image.src, path.join(imagesPath, m.image.id + '.jpg'));
                     debugLow(`  - Image downloaded`);
                     movies[i].image.path = path.join(imagesPath, movies[i].image.id + '.jpg');
+                }
+
+                if(movies[i].image.id && !movies[i].imdb){
+                    debugLow(`  - Downloading Imdb data`);
+                    let imdbData = await imdb.getMovieById(movies[i].image.id);
+                    debugLow(`  - Imdb data downloaded`, imdbData);
+                    movies[i].imdb = imdbData;
                 }
                 i++;
             }
@@ -214,24 +222,20 @@ let utils = {
         return dirPath.trim();
     },
 
-    getImage: function (name, year) {
-        return new Promise((resolve, reject) => {
+    getImage: async function (name, year) {
+        try {
             let opt = {
                 'name': name,
                 'year': year,
-                'type': 'movie',
-                'providers': 'imdbFind'
+                'type': 'movie'
             }
-            nameToImdb(opt, function (error, res, inf) {
-                if (error) {
-                    return reject(error);
-                }
-
-                let image = inf.meta && inf.meta.image ? inf.meta.image.src : null;
-                let id = inf.meta && inf.meta.id ? inf.meta.id : null;
-                resolve({ src: image, id: id });
-            });
-        });
+            let inf = await imdb.findMovieBySearch(opt);
+            let image = inf.meta && inf.meta.image ? inf.meta.image.src : null;
+            let id = inf.meta && inf.meta.id ? inf.meta.id : null;
+            return { src: image, id: id };           
+        } catch (error) {
+            throw error;
+        }
     },
 
     downloadImage: function (url, imagePath) {
