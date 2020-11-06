@@ -13,15 +13,14 @@ if (require('electron-squirrel-startup')) {
 
 const menu = require('./lib/menu');
 const utils = require('./lib/utils');
+const Json = require('./lib/json');
 
 const createWindow = () => {
 
     console.log('config.preferencesPath', config.preferencesPath)
-    let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
+    let preferences = new Json(config.preferencesPath).data;
 
-    let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-    html = html.replace(/\"(dark|light)\"/, `"${preferences.theme}"` || '"dark"');
-    fs.writeFileSync(path.join(__dirname, 'index.html'), html);
+    utils.replaceTheme(path.join(__dirname, 'index.html'), preferences.theme);
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -48,6 +47,7 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
     mainWindow.webContents.on('did-finish-load', () => {
         console.log('On did-finish-load');
+        preferences = new Json(config.preferencesPath).data;
         utils.mainWindow = mainWindow;
         utils.getData(preferences.paths)
             .then(data => {

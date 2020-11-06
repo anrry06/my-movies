@@ -1,7 +1,7 @@
 const { ipcRenderer } = require('electron');
-const fs = require('fs');
 
 const utils = require('./lib/utils');
+const Json = require('./lib/json');
 const loader = require('./js/loader');
 
 const env = process.env.NODE_ENV || 'dev';
@@ -9,7 +9,7 @@ const config = require('./config/' + env + '.js');
 
 console.log('main.js');
 
-let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
+let preferences = new Json(config.preferencesPath).data;
 
 const themeConfig = new ThemeConfig();
 themeConfig.initTheme(preferences.theme);

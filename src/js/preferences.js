@@ -1,10 +1,11 @@
 const { ipcRenderer } = require('electron');
-const fs = require('fs')
 
 const env = process.env.NODE_ENV || 'dev';
 const config = require('./config/' + env + '.js');
 
-let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
+const Json = require('./lib/json');
+
+let preferences = new Json(config.preferencesPath).data;
 
 console.log('preferences', preferences);
 
@@ -48,23 +49,22 @@ let pathFolderInput = document.querySelector('#path');
 pathFolderInput.onclick = e => {
     e.preventDefault();
 
-    console.log('select-dirs');
     window.postMessage({
         type: 'select-dirs'
     })
-
-    ipcRenderer.on('dirs-results', (event, data) => {
-        console.log(data);
-
-        if(data.length === 0){
-            return false;
-        }
-
-        let folderPath = data[0].replace(/\\/g, '/');
-        document.querySelector('#pathResult').innerHTML = folderPath;
-        document.querySelector('#pathResult').setAttribute('data-path', folderPath)
-    })
 }
+
+ipcRenderer.on('dirs-results', (event, data) => {
+    console.log(data);
+
+    if(data.length === 0){
+        return false;
+    }
+
+    let folderPath = data[0].replace(/\\/g, '/');
+    document.querySelector('#pathResult').innerHTML = folderPath;
+    document.querySelector('#pathResult').setAttribute('data-path', folderPath)
+});
 
 ipcRenderer.on('preferences-saved', (event, data) => {
     let alert = `

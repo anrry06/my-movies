@@ -1,18 +1,19 @@
 const { app, Menu, BrowserWindow, ipcMain, dialog } = require('electron');
-const fs = require('fs');
 const path = require('path');
 
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../config/' + env + '.js');
 
-let preferences = JSON.parse(fs.readFileSync(config.preferencesPath))
-
 const utils = require('../lib/utils');
+const Json = require('../lib/json');
+
+let preferencesJson = new Json(config.preferencesPath);
+let preferences = preferencesJson.data;
 
 let savePreferences = (prefs) => {
     console.log('Saving preferences', prefs);
     if (prefs) {
-        fs.writeFileSync(config.preferencesPath, JSON.stringify(prefs));
+        preferencesJson.save(prefs);
     }
 }
 
@@ -22,9 +23,7 @@ let displayPreferences = (mainWindow) => {
         '../preferences.html'
     );
 
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    html = html.replace(/\"(dark|light)\"/, `"${preferences.theme}"` || '"dark"');
-    fs.writeFileSync(htmlPath, html);
+    utils.replaceTheme(htmlPath, preferences.theme);
 
     let prefWindow = new BrowserWindow({
         y: 200,
@@ -48,10 +47,6 @@ let displayPreferences = (mainWindow) => {
     );
     prefWindow.webContents.openDevTools({ mode: 'detach' });
 
-    prefWindow.on('close', function () {
-        prefWindow = null;
-    });
-
     let directoryDialog = null;
 
     let _selectDirs = async (event, arg) => {
@@ -62,9 +57,9 @@ let displayPreferences = (mainWindow) => {
             })
             console.log('Directories selected', directoryDialog.filePaths)
             prefWindow.webContents.send('dirs-results', directoryDialog.filePaths);
+            directoryDialog = null;
         }
     }
-    ipcMain.removeListener('select-dirs', _selectDirs)
     ipcMain.on('select-dirs', _selectDirs)
 
     let _savePreferences = (event, prefs) => {
@@ -73,7 +68,6 @@ let displayPreferences = (mainWindow) => {
             prefWindow.webContents.send('preferences-saved', prefs);
         }
     }
-    ipcMain.removeListener('save-preferences', _savePreferences);
     ipcMain.on('save-preferences', _savePreferences);
 
     let _savePreferencesPath = (event, prefs) => {
@@ -93,8 +87,15 @@ let displayPreferences = (mainWindow) => {
                 throw error;
             });
     }
-    ipcMain.removeListener('save-preferences-path', _savePreferencesPath);
     ipcMain.on('save-preferences-path', _savePreferencesPath);
+
+    prefWindow.on('close', function () {
+        prefWindow = null;
+        ipcMain.removeListener('select-dirs', _selectDirs)
+        ipcMain.removeListener('save-preferences', _savePreferences);
+        ipcMain.removeListener('save-preferences-path', _savePreferencesPath);
+    });
+
 }
 
 let archivesShown = false;
@@ -104,12 +105,12 @@ let displayArchives = (mainWindow) => {
     let label = _menuConf[0].submenu[2].label;
 
     if(archivesShown === false){
-        let archives = JSON.parse(fs.readFileSync(config.oldMoviesPath))
+        let archives = new Json(config.oldMoviesPath).data;
         mainWindow.webContents.send('display-archives', archives);
         label = 'Display Movies';
         archivesShown = true;
     } else {
-        let movies = JSON.parse(fs.readFileSync(config.moviesPath))
+        let movies = new Json(config.moviesPath).data;
         mainWindow.webContents.send('display-movies', movies);
         label = 'Display Archives';
         archivesShown = false;

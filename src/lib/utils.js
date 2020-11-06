@@ -15,6 +15,8 @@ const { exec } = require('child_process');
 const env = process.env.NODE_ENV || 'dev';
 const config = require('../config/' + env + '.js');
 
+const Json = require('../lib/json.js');
+
 let debug = (...args) =>{ 
     console.log(...args);
     if(utils.mainWindow){
@@ -84,8 +86,10 @@ let utils = {
         try {
             debug(`Found ${movies.length} possible movies`);
 
-            let moviesList = JSON.parse(fs.readFileSync(config.moviesPath));
-            let oldMoviesList = JSON.parse(fs.readFileSync(config.oldMoviesPath));
+            let moviesListJson = new Json(config.moviesPath);
+            let moviesList = moviesListJson.data;
+            let oldMoviesListJson = new Json(config.oldMoviesPath);
+            let oldMoviesList = oldMoviesListJson.data;
 
             let found = [];
 
@@ -118,7 +122,7 @@ let utils = {
             });
 
             oldMoviesList = oldMoviesList.concat(_oldMoviesList);
-            fs.writeFileSync(config.oldMoviesPath, JSON.stringify(oldMoviesList));
+            oldMoviesListJson.save(oldMoviesList);
             debug(`Total archived movies : ${oldMoviesList.length}`);
 
             moviesList = moviesList.filter(m => found.indexOf(m.name) !== -1);
@@ -165,7 +169,7 @@ let utils = {
             movies = utils.sortMovies(movies);
 
             debug(`Saving data`);
-            fs.writeFileSync(config.moviesPath, JSON.stringify(movies));
+            moviesListJson.save(movies);
 
             debug(`Total movies saved: ${movies.length}`);
             return movies;
@@ -334,6 +338,12 @@ let utils = {
             if(stderr !== '')
                 console.error(`stderr: ${stderr}`);
         });
+    },
+
+    replaceTheme: function(htmlPath, theme){
+        let html = fs.readFileSync(htmlPath, 'utf8');
+        html = html.replace(/\"(dark|light)\"/, `"${theme}"` || '"dark"');
+        fs.writeFileSync(htmlPath, html);
     }
 
 };
